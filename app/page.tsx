@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { format, addMonths, subMonths, isBefore, isSameDay } from "date-fns";
 import { HeroHeader } from "@/components/HeroHeader";
 import { NotesPanel } from "@/components/NotesPanel";
 import { DateGrid } from "@/components/DateGrid";
+import { SummaryModal } from "@/components/SummaryModal";
 import { Theme } from "@/types";
 import { Loader2 } from "lucide-react";
 
@@ -17,6 +18,7 @@ export default function Home() {
   const [notes, setNotes] = useState("");
   const [datesWithNotes, setDatesWithNotes] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [showSummary, setShowSummary] = useState(false);
 
   const [activeTheme, setActiveTheme] = useState<Theme>({
     id: "initial",
@@ -27,12 +29,24 @@ export default function Home() {
   });
 
   const refreshNoteIndicators = useCallback(() => {
+    if (typeof window === "undefined") return;
     const keys = Object.keys(localStorage);
     const noteDates = keys
       .filter((key) => key.startsWith("note-"))
       .map((key) => key.replace("note-", ""));
     setDatesWithNotes(noteDates);
   }, []);
+
+  const getMonthNotes = useMemo(() => {
+    const monthPrefix = format(currentMonth, "yyyy-MM");
+    return datesWithNotes
+      .filter((dateStr) => dateStr.startsWith(monthPrefix))
+      .map((dateStr) => ({
+        date: dateStr,
+        text: localStorage.getItem(`note-${dateStr}`) || "",
+      }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+  }, [currentMonth, datesWithNotes]);
 
   useEffect(() => {
     refreshNoteIndicators();
@@ -82,6 +96,7 @@ export default function Home() {
       });
       setIsLoading(false);
     };
+    img.onerror = () => setIsLoading(false);
   }, []);
 
   const randomizeTheme = useCallback(() => {
@@ -121,6 +136,13 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-neutral-100 p-4 py-12 flex items-center justify-center font-sans">
       <div className="w-full max-w-3xl bg-white shadow-2xl overflow-hidden relative min-h-[600px]">
+        <SummaryModal
+          isOpen={showSummary}
+          onClose={() => setShowSummary(false)}
+          notes={getMonthNotes}
+          theme={activeTheme}
+        />
+
         {isLoading && (
           <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/60 backdrop-blur-sm">
             <Loader2
@@ -129,18 +151,28 @@ export default function Home() {
             />
           </div>
         )}
+
         <HeroHeader
           theme={activeTheme}
           currentMonth={currentMonth}
-          onPrevMonth={() => setCurrentMonth(subMonths(currentMonth, 1))}
-          onNextMonth={() => setCurrentMonth(addMonths(currentMonth, 1))}
+          onPrevMonth={() => {
+            setDirection(-1);
+            setCurrentMonth(subMonths(currentMonth, 1));
+          }}
+          onNextMonth={() => {
+            setDirection(1);
+            setCurrentMonth(addMonths(currentMonth, 1));
+          }}
           onRandomize={randomizeTheme}
         />
+
         <div className="flex flex-col md:flex-row p-6 md:p-10 gap-10 md:gap-6">
           <NotesPanel
             notes={notes}
             onNotesChange={handleNotesChange}
             selectedDate={startDate}
+            onToggleSummary={() => setShowSummary(true)}
+            theme={activeTheme}
           />
           <DateGrid
             currentMonth={currentMonth}
