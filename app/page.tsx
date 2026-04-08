@@ -16,7 +16,7 @@ import {
   isBefore,
   isAfter,
 } from "date-fns";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Image as ImageIcon } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -24,12 +24,48 @@ function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+const THEMES = [
+  {
+    id: "glacier",
+    imageUrl:
+      "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=1000",
+    primaryHex: "#1B95D4",
+    textClass: "text-[#1B95D4]",
+    bgLightClass: "bg-[#1B95D4]/10",
+    bgClass: "bg-[#1B95D4]",
+    hoverClass: "hover:bg-[#157bb0]",
+  },
+  {
+    id: "forest",
+    imageUrl:
+      "https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&q=80&w=1000",
+    primaryHex: "#2E8B57",
+    textClass: "text-[#2E8B57]",
+    bgLightClass: "bg-[#2E8B57]/10",
+    bgClass: "bg-[#2E8B57]",
+    hoverClass: "hover:bg-[#236e44]",
+  },
+  {
+    id: "canyon",
+    imageUrl:
+      "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&q=80&w=1000",
+    primaryHex: "#D35400",
+    textClass: "text-[#D35400]",
+    bgLightClass: "bg-[#D35400]/10",
+    bgClass: "bg-[#D35400]",
+    hoverClass: "hover:bg-[#a84300]",
+  },
+];
+
 export default function Home() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [hoverDate, setHoverDate] = useState<Date | null>(null);
   const [notes, setNotes] = useState("");
+  const [activeThemeIndex, setActiveThemeIndex] = useState(0);
+
+  const theme = THEMES[activeThemeIndex];
 
   useEffect(() => {
     const monthKey = format(currentMonth, "yyyy-MM");
@@ -46,6 +82,10 @@ export default function Home() {
 
   const nextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
   const prevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
+
+  const cycleTheme = () => {
+    setActiveThemeIndex((prev) => (prev + 1) % THEMES.length);
+  };
 
   const onDateClick = (day: Date) => {
     if (!startDate || (startDate && endDate)) {
@@ -74,15 +114,26 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-neutral-100 p-4 py-12 flex items-center justify-center font-sans">
-      <div className="w-full max-w-3xl bg-white shadow-2xl overflow-hidden relative">
+      <div className="w-full max-w-3xl bg-white shadow-2xl overflow-hidden relative transition-colors duration-500">
         <div className="relative w-full h-[350px] md:h-[450px] bg-slate-200">
-          <div className="absolute inset-0 flex items-center justify-center text-slate-400">
-            HERO IMAGE GOES HERE
-          </div>
+          <img
+            src={theme.imageUrl}
+            alt="Calendar Hero"
+            className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500"
+          />
+
+          <button
+            onClick={cycleTheme}
+            className="absolute top-4 right-4 z-20 bg-black/30 hover:bg-black/50 text-white p-2 rounded-full backdrop-blur-sm transition-all"
+            title="Change Theme"
+          >
+            <ImageIcon size={20} />
+          </button>
 
           <div
-            className="absolute bottom-0 w-full h-40 md:h-56 bg-[#1B95D4] flex items-end justify-between p-6 md:p-8"
+            className="absolute bottom-0 w-full h-40 md:h-56 flex items-end justify-between p-6 md:p-8 transition-colors duration-500"
             style={{
+              backgroundColor: theme.primaryHex,
               clipPath: "polygon(0 60%, 35% 100%, 100% 10%, 100% 100%, 0 100%)",
             }}
           >
@@ -137,7 +188,10 @@ export default function Home() {
                 (dayName) => (
                   <div
                     key={dayName}
-                    className="text-[10px] font-bold text-[#1B95D4] uppercase"
+                    className={cn(
+                      "text-[10px] font-bold uppercase transition-colors duration-500",
+                      theme.textClass,
+                    )}
                   >
                     {dayName}
                   </div>
@@ -174,11 +228,19 @@ export default function Home() {
                         "text-slate-300 font-normal hover:text-slate-500",
                       isCurrentMonth && "hover:bg-slate-100",
                       (isWithinSelection || isHovered) &&
-                        "bg-[#1B95D4]/10 rounded-none",
+                        cn(theme.bgLightClass, "rounded-none"),
                       isSelectedStart &&
-                        "bg-[#1B95D4] text-white rounded-l-full rounded-r-none hover:bg-[#157bb0]",
+                        cn(
+                          theme.bgClass,
+                          theme.hoverClass,
+                          "text-white rounded-l-full rounded-r-none",
+                        ),
                       isSelectedEnd &&
-                        "bg-[#1B95D4] text-white rounded-r-full rounded-l-none hover:bg-[#157bb0]",
+                        cn(
+                          theme.bgClass,
+                          theme.hoverClass,
+                          "text-white rounded-r-full rounded-l-none",
+                        ),
                       isSelectedStart && isSelectedEnd && "rounded-full",
                       isSelectedStart &&
                         !endDate &&
