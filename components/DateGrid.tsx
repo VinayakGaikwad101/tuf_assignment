@@ -13,7 +13,6 @@ import {
   addDays,
   isWithinInterval,
   isBefore,
-  isToday,
   isWeekend,
 } from "date-fns";
 import { Theme } from "../types";
@@ -70,6 +69,7 @@ export const DateGrid = React.memo(function DateGrid({
           </div>
         ))}
       </div>
+
       <div
         className="relative flex-1 min-h-[250px]"
         style={{ perspective: "1200px" }}
@@ -87,10 +87,15 @@ export const DateGrid = React.memo(function DateGrid({
               const isSelStart = startDate && isSameDay(date, startDate);
               const isSelEnd = endDate && isSameDay(date, endDate);
               const hasNote = datesWithNotes.includes(dateStr);
+
               const isBetween =
                 startDate &&
                 endDate &&
-                isWithinInterval(date, { start: startDate, end: endDate });
+                isWithinInterval(date, {
+                  start: startDate,
+                  end: endDate,
+                });
+
               const isHover =
                 startDate &&
                 !endDate &&
@@ -136,11 +141,11 @@ export const DateGrid = React.memo(function DateGrid({
                           : "4px",
                   }}
                 >
-                  <div className="flex flex-col items-center">
+                  <div className="flex flex-col items-center justify-center relative w-full h-full">
                     <span>{format(date, "d")}</span>
                     {hasNote && (
                       <div
-                        className="w-1 h-1 rounded-full absolute bottom-1"
+                        className="w-1.5 h-1.5 rounded-full absolute bottom-1 left-1/2 -translate-x-1/2"
                         style={{
                           backgroundColor:
                             isSelStart || isSelEnd ? "#fff" : theme.primaryHex,

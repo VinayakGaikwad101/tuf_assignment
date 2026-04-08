@@ -27,10 +27,12 @@ export function HeroHeader({
         alt="Calendar Hero"
         className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700"
       />
+
       <div className="absolute top-4 right-4 z-20">
         <button
           onClick={onRandomize}
           className="bg-black/30 hover:bg-black/50 text-white p-2.5 rounded-full backdrop-blur-md transition-all active:scale-95 group"
+          title="Randomize Theme"
         >
           <Shuffle
             size={20}
@@ -38,6 +40,7 @@ export function HeroHeader({
           />
         </button>
       </div>
+
       <div
         className="absolute bottom-0 w-full h-40 md:h-56 flex items-end justify-between p-6 md:p-8 transition-all duration-500 shadow-[inset_0_-120px_60px_-60px_rgba(0,0,0,0.3)]"
         style={{
@@ -49,7 +52,7 @@ export function HeroHeader({
           <div className="text-xl md:text-2xl font-light tracking-wide flex items-center justify-end gap-2 mb-1">
             <button
               onClick={onPrevMonth}
-              className="hover:bg-white/20 p-1 rounded-full"
+              className="hover:bg-white/20 p-1 rounded-full transition-colors"
             >
               <ChevronLeft size={28} />
             </button>
@@ -58,7 +61,7 @@ export function HeroHeader({
             </span>
             <button
               onClick={onNextMonth}
-              className="hover:bg-white/20 p-1 rounded-full"
+              className="hover:bg-white/20 p-1 rounded-full transition-colors"
             >
               <ChevronRight size={28} />
             </button>
