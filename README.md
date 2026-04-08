@@ -1,36 +1,61 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TUF Assignment: Context-Aware Scheduler
 
-## Getting Started
+This project is an interactive calendar application that implements Generative UI principles. It bridges the gap between aesthetics and utility by dynamically extracting design systems from high-resolution imagery and providing a focused, per-date note-taking experience.
 
-First, run the development server:
+## The Core Concept
 
-```bash
+Most applications rely on static dark or light modes. This application utilizes a Native Canvas Extraction Engine. When the header image is randomized, the system:
+
+1.  Draws the image onto a hidden 1x1 pixel canvas.
+2.  Extracts the average color data of the entire image.
+3.  Processes the data through a Relative Luminance Algorithm to ensure accessibility.
+4.  Updates the global CSS variables, including primary accents, notebook line colors, and hover states to synchronize with the image.
+
+## Tech Stack
+
+- Framework: Next.js 15 (App Router)
+- Styling: Tailwind CSS
+- Animations: Framer Motion
+- Date Logic: date-fns
+- Icons: Lucide React
+
+## Features
+
+- Dynamic Theming: Utilizes native Web APIs for color extraction, avoiding the overhead and compatibility issues of external libraries.
+- Per-Date Persistence: Notes are stored in LocalStorage using a YYYY-MM-DD mapping strategy.
+- Smart Range Selection: Implements logic to automatically swap start and end dates if selected out of chronological order.
+- Month Summary: An aggregate view that parses storage to display all notes for the current month in a single list.
+- Responsive Design: Optimized for both mobile and desktop viewports.
+
+## Local Setup
+
+### 1\. Clone the repository
+
+git clone [https://github.com/your-username/tuf-assignment.git](https://www.google.com/search?q=https://github.com/your-username/tuf-assignment.git)
+cd tuf-assignment
+
+### 2\. Install dependencies
+
+npm install
+
+### 3\. Run the development server
+
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000 in your browser to view the application.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Architectural Choices
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Data Persistence
 
-## Learn More
+LocalStorage was chosen to ensure zero-latency data retrieval and a setup-free experience for reviewers. This removes the need for external API keys or database migrations while maintaining data across browser sessions.
 
-To learn more about Next.js, take a look at the following resources:
+### Native Canvas API
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+By leveraging the native HTML5 Canvas API for color extraction, the application avoids common bundling errors associated with older libraries in modern environments like Turbopack. This approach results in a smaller bundle size and higher reliability.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Validation Logic
 
-## Deploy on Vercel
+The date selection handler includes a "Smart Swap" mechanism. If a user selects a range where the second click is chronologically earlier than the first, the state is automatically corrected. This ensures the application logic remains consistent and prevents UI errors.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Submitted for the TUF Assignment.
