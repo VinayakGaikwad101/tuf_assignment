@@ -42,6 +42,7 @@ const THEMES: Theme[] = [
 
 export default function Home() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [direction, setDirection] = useState(0);
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [hoverDate, setHoverDate] = useState<Date | null>(null);
@@ -66,14 +67,16 @@ export default function Home() {
     [currentMonth],
   );
 
-  const nextMonth = useCallback(
-    () => setCurrentMonth((prev) => addMonths(prev, 1)),
-    [],
-  );
-  const prevMonth = useCallback(
-    () => setCurrentMonth((prev) => subMonths(prev, 1)),
-    [],
-  );
+  const nextMonth = useCallback(() => {
+    setDirection(1);
+    setCurrentMonth((prev) => addMonths(prev, 1));
+  }, []);
+
+  const prevMonth = useCallback(() => {
+    setDirection(-1);
+    setCurrentMonth((prev) => subMonths(prev, 1));
+  }, []);
+
   const cycleTheme = useCallback(
     () => setActiveThemeIndex((prev) => (prev + 1) % THEMES.length),
     [],
@@ -111,6 +114,7 @@ export default function Home() {
 
           <DateGrid
             currentMonth={currentMonth}
+            direction={direction}
             startDate={startDate}
             endDate={endDate}
             hoverDate={hoverDate}

@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   format,
   startOfMonth,
@@ -24,6 +25,7 @@ function cn(...inputs: ClassValue[]) {
 
 interface DateGridProps {
   currentMonth: Date;
+  direction: number;
   startDate: Date | null;
   endDate: Date | null;
   hoverDate: Date | null;
@@ -34,6 +36,7 @@ interface DateGridProps {
 
 export const DateGrid = React.memo(function DateGrid({
   currentMonth,
+  direction,
   startDate,
   endDate,
   hoverDate,
@@ -53,8 +56,26 @@ export const DateGrid = React.memo(function DateGrid({
     day = addDays(day, 1);
   }
 
+  // Animation variants handle the left/right sliding logic
+  const slideVariants = {
+    enter: (direction: number) => ({
+      x: direction > 0 ? 50 : -50,
+      opacity: 0,
+    }),
+    center: {
+      zIndex: 1,
+      x: 0,
+      opacity: 1,
+    },
+    exit: (direction: number) => ({
+      zIndex: 0,
+      x: direction < 0 ? 50 : -50,
+      opacity: 0,
+    }),
+  };
+
   return (
-    <div className="w-full md:w-2/3">
+    <div className="w-full md:w-2/3 flex flex-col">
       <div className="grid grid-cols-7 text-center mb-6" aria-hidden="true">
         {["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"].map((dayName) => (
           <div
@@ -69,67 +90,78 @@ export const DateGrid = React.memo(function DateGrid({
         ))}
       </div>
 
-      <div
-        className="grid grid-cols-7 gap-y-2 text-center text-sm md:text-base font-semibold text-slate-700"
-        onMouseLeave={() => setHoverDate(null)}
-        role="grid"
-        aria-label="Calendar dates"
-      >
-        {calendarDays.map((date) => {
-          const isCurrentMonth = isSameMonth(date, currentMonth);
-          const isSelectedStart = startDate && isSameDay(date, startDate);
-          const isSelectedEnd = endDate && isSameDay(date, endDate);
-          const isWithinSelection =
-            startDate &&
-            endDate &&
-            isWithinInterval(date, { start: startDate, end: endDate });
-          const isHovered =
-            startDate &&
-            !endDate &&
-            hoverDate &&
-            ((isAfter(date, startDate) && isBefore(date, hoverDate)) ||
-              (isBefore(date, startDate) && isAfter(date, hoverDate)) ||
-              isSameDay(date, hoverDate));
+      <div className="relative flex-1 min-h-[250px] overflow-hidden">
+        <AnimatePresence mode="wait" custom={direction} initial={false}>
+          <motion.div
+            key={currentMonth.toISOString()}
+            custom={direction}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="grid grid-cols-7 gap-y-2 text-center text-sm md:text-base font-semibold text-slate-700 absolute w-full top-0"
+            onMouseLeave={() => setHoverDate(null)}
+            role="grid"
+            aria-label="Calendar dates"
+          >
+            {calendarDays.map((date) => {
+              const isCurrentMonth = isSameMonth(date, currentMonth);
+              const isSelectedStart = startDate && isSameDay(date, startDate);
+              const isSelectedEnd = endDate && isSameDay(date, endDate);
+              const isWithinSelection =
+                startDate &&
+                endDate &&
+                isWithinInterval(date, { start: startDate, end: endDate });
+              const isHovered =
+                startDate &&
+                !endDate &&
+                hoverDate &&
+                ((isAfter(date, startDate) && isBefore(date, hoverDate)) ||
+                  (isBefore(date, startDate) && isAfter(date, hoverDate)) ||
+                  isSameDay(date, hoverDate));
 
-          return (
-            <button
-              key={date.toString()}
-              type="button"
-              aria-label={format(date, "PPPP")}
-              aria-pressed={
-                !!(isSelectedStart || isSelectedEnd || isWithinSelection)
-              }
-              className={cn(
-                "h-10 md:h-12 flex items-center justify-center cursor-pointer transition-all relative focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
-                !isCurrentMonth &&
-                  "text-slate-300 font-normal hover:text-slate-500",
-                isCurrentMonth &&
-                  "hover:bg-slate-100 focus-visible:ring-[#1B95D4]",
-                (isWithinSelection || isHovered) &&
-                  cn(theme.bgLightClass, "rounded-none"),
-                isSelectedStart &&
-                  cn(
-                    theme.bgClass,
-                    theme.hoverClass,
-                    "text-white rounded-l-full rounded-r-none",
-                  ),
-                isSelectedEnd &&
-                  cn(
-                    theme.bgClass,
-                    theme.hoverClass,
-                    "text-white rounded-r-full rounded-l-none",
-                  ),
-                isSelectedStart && isSelectedEnd && "rounded-full",
-                isSelectedStart && !endDate && !hoverDate && "rounded-full",
-              )}
-              onClick={() => onDateClick(date)}
-              onMouseEnter={() => setHoverDate(date)}
-              onFocus={() => setHoverDate(date)}
-            >
-              <span className="z-10">{format(date, "d")}</span>
-            </button>
-          );
-        })}
+              return (
+                <button
+                  key={date.toString()}
+                  type="button"
+                  aria-label={format(date, "PPPP")}
+                  aria-pressed={
+                    !!(isSelectedStart || isSelectedEnd || isWithinSelection)
+                  }
+                  className={cn(
+                    "h-10 md:h-12 flex items-center justify-center cursor-pointer transition-colors relative focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+                    !isCurrentMonth &&
+                      "text-slate-300 font-normal hover:text-slate-500",
+                    isCurrentMonth &&
+                      "hover:bg-slate-100 focus-visible:ring-[#1B95D4]",
+                    (isWithinSelection || isHovered) &&
+                      cn(theme.bgLightClass, "rounded-none"),
+                    isSelectedStart &&
+                      cn(
+                        theme.bgClass,
+                        theme.hoverClass,
+                        "text-white rounded-l-full rounded-r-none",
+                      ),
+                    isSelectedEnd &&
+                      cn(
+                        theme.bgClass,
+                        theme.hoverClass,
+                        "text-white rounded-r-full rounded-l-none",
+                      ),
+                    isSelectedStart && isSelectedEnd && "rounded-full",
+                    isSelectedStart && !endDate && !hoverDate && "rounded-full",
+                  )}
+                  onClick={() => onDateClick(date)}
+                  onMouseEnter={() => setHoverDate(date)}
+                  onFocus={() => setHoverDate(date)}
+                >
+                  <span className="z-10">{format(date, "d")}</span>
+                </button>
+              );
+            })}
+          </motion.div>
+        </AnimatePresence>
       </div>
     </div>
   );
