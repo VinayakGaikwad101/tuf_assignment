@@ -81,30 +81,32 @@ export default function Home() {
           </div>
 
           <div
-            className="absolute bottom-0 w-full h-32 md:h-48 bg-[#1B95D4] flex items-end justify-between p-6 md:p-8"
+            className="absolute bottom-0 w-full h-40 md:h-56 bg-[#1B95D4] flex items-end justify-between p-6 md:p-8"
             style={{
-              clipPath: "polygon(0 50%, 45% 100%, 100% 20%, 100% 100%, 0 100%)",
+              clipPath: "polygon(0 60%, 35% 100%, 100% 10%, 100% 100%, 0 100%)",
             }}
           >
             <div className="flex gap-4 mt-auto opacity-0 md:opacity-100"></div>
 
-            <div className="text-right text-white">
-              <div className="text-xl md:text-2xl font-light tracking-wide flex items-center justify-end gap-2">
+            <div className="text-right text-white z-10 relative">
+              <div className="text-xl md:text-2xl font-light tracking-wide flex items-center justify-end gap-1 mb-1">
                 <button
                   onClick={prevMonth}
-                  className="hover:bg-white/20 p-1 rounded-full transition-colors"
+                  className="hover:bg-white/20 p-1.5 rounded-full transition-colors cursor-pointer"
                 >
-                  <ChevronLeft size={20} />
+                  <ChevronLeft size={24} />
                 </button>
-                {format(currentMonth, "yyyy")}
+                <span className="min-w-[4rem] text-center">
+                  {format(currentMonth, "yyyy")}
+                </span>
                 <button
                   onClick={nextMonth}
-                  className="hover:bg-white/20 p-1 rounded-full transition-colors"
+                  className="hover:bg-white/20 p-1.5 rounded-full transition-colors cursor-pointer"
                 >
-                  <ChevronRight size={20} />
+                  <ChevronRight size={24} />
                 </button>
               </div>
-              <div className="text-3xl md:text-5xl font-bold tracking-widest uppercase mt-[-4px]">
+              <div className="text-3xl md:text-4xl font-bold tracking-widest uppercase mt-[-4px]">
                 {format(currentMonth, "MMMM")}
               </div>
             </div>
