@@ -14,6 +14,7 @@ import {
   isWithinInterval,
   isBefore,
   isAfter,
+  isToday,
 } from "date-fns";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -56,7 +57,6 @@ export const DateGrid = React.memo(function DateGrid({
     day = addDays(day, 1);
   }
 
-  // Animation variants handle the left/right sliding logic
   const slideVariants = {
     enter: (direction: number) => ({
       x: direction > 0 ? 50 : -50,
@@ -120,6 +120,7 @@ export const DateGrid = React.memo(function DateGrid({
                 ((isAfter(date, startDate) && isBefore(date, hoverDate)) ||
                   (isBefore(date, startDate) && isAfter(date, hoverDate)) ||
                   isSameDay(date, hoverDate));
+              const isCurrentDay = isToday(date);
 
               return (
                 <button
@@ -133,24 +134,35 @@ export const DateGrid = React.memo(function DateGrid({
                     "h-10 md:h-12 flex items-center justify-center cursor-pointer transition-colors relative focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
                     !isCurrentMonth &&
                       "text-slate-300 font-normal hover:text-slate-500",
-                    isCurrentMonth &&
-                      "hover:bg-slate-100 focus-visible:ring-[#1B95D4]",
+                    isCurrentMonth && !isCurrentDay && "hover:bg-slate-100",
+                    isCurrentDay &&
+                      !isSelectedStart &&
+                      !isSelectedEnd &&
+                      !isWithinSelection &&
+                      cn(
+                        "border-2 font-bold",
+                        theme.textClass,
+                        "border-current rounded-full",
+                      ),
                     (isWithinSelection || isHovered) &&
-                      cn(theme.bgLightClass, "rounded-none"),
+                      cn(theme.bgLightClass, "rounded-none border-transparent"),
                     isSelectedStart &&
                       cn(
                         theme.bgClass,
                         theme.hoverClass,
-                        "text-white rounded-l-full rounded-r-none",
+                        "text-white rounded-l-full rounded-r-none border-transparent",
                       ),
                     isSelectedEnd &&
                       cn(
                         theme.bgClass,
                         theme.hoverClass,
-                        "text-white rounded-r-full rounded-l-none",
+                        "text-white rounded-r-full rounded-l-none border-transparent",
                       ),
                     isSelectedStart && isSelectedEnd && "rounded-full",
-                    isSelectedStart && !endDate && !hoverDate && "rounded-full",
+                    isSelectedStart &&
+                      !endDate &&
+                      !hoverDate &&
+                      "rounded-full focus-visible:ring-[#1B95D4]",
                   )}
                   onClick={() => onDateClick(date)}
                   onMouseEnter={() => setHoverDate(date)}
