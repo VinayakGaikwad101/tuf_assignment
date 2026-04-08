@@ -13,16 +13,18 @@ import {
   addDays,
   isWithinInterval,
   isBefore,
-  isAfter,
   isToday,
+  isWeekend,
 } from "date-fns";
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
 import { Theme } from "../types";
 
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+const HOLIDAYS = [
+  "2026-01-01",
+  "2026-01-26",
+  "2026-08-15",
+  "2026-10-02",
+  "2026-12-25",
+];
 
 interface DateGridProps {
   currentMonth: Date;
@@ -45,131 +47,113 @@ export const DateGrid = React.memo(function DateGrid({
   onDateClick,
   setHoverDate,
 }: DateGridProps) {
-  const monthStart = startOfMonth(currentMonth);
-  const monthEnd = endOfMonth(monthStart);
-  const calendarStart = startOfWeek(monthStart, { weekStartsOn: 1 });
-  const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
-
   const calendarDays = [];
-  let day = calendarStart;
-  while (day <= calendarEnd) {
+  let day = startOfWeek(startOfMonth(currentMonth), { weekStartsOn: 1 });
+  const end = endOfWeek(endOfMonth(currentMonth), { weekStartsOn: 1 });
+  while (day <= end) {
     calendarDays.push(day);
     day = addDays(day, 1);
   }
 
-  const slideVariants = {
-    enter: (direction: number) => ({
-      x: direction > 0 ? 50 : -50,
-      opacity: 0,
-    }),
-    center: {
-      zIndex: 1,
-      x: 0,
-      opacity: 1,
-    },
-    exit: (direction: number) => ({
-      zIndex: 0,
-      x: direction < 0 ? 50 : -50,
-      opacity: 0,
-    }),
+  const flipVariants = {
+    enter: (d: number) => ({ rotateX: d > 0 ? -90 : 90, opacity: 0 }),
+    center: { zIndex: 1, rotateX: 0, opacity: 1 },
+    exit: (d: number) => ({ zIndex: 0, rotateX: d > 0 ? 90 : -90, opacity: 0 }),
   };
 
   return (
     <div className="w-full md:w-2/3 flex flex-col">
-      <div className="grid grid-cols-7 text-center mb-6" aria-hidden="true">
-        {["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"].map((dayName) => (
+      <div className="grid grid-cols-7 text-center mb-6">
+        {["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"].map((d) => (
           <div
-            key={dayName}
-            className={cn(
-              "text-[10px] font-bold uppercase transition-colors duration-500",
-              theme.textClass,
-            )}
+            key={d}
+            className="text-[10px] font-bold uppercase"
+            style={{ color: theme.primaryHex }}
           >
-            {dayName}
+            {d}
           </div>
         ))}
       </div>
 
-      <div className="relative flex-1 min-h-[250px] overflow-hidden">
+      <div
+        className="relative flex-1 min-h-[250px]"
+        style={{ perspective: "1200px" }}
+      >
         <AnimatePresence mode="wait" custom={direction} initial={false}>
           <motion.div
             key={currentMonth.toISOString()}
             custom={direction}
-            variants={slideVariants}
+            variants={flipVariants}
             initial="enter"
             animate="center"
             exit="exit"
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="grid grid-cols-7 gap-y-2 text-center text-sm md:text-base font-semibold text-slate-700 absolute w-full top-0"
+            transition={{ type: "spring", stiffness: 200, damping: 20 }}
+            style={{ transformOrigin: "top center" }}
+            className="grid grid-cols-7 gap-y-2 text-center text-sm md:text-base font-semibold absolute w-full top-0"
             onMouseLeave={() => setHoverDate(null)}
-            role="grid"
-            aria-label="Calendar dates"
           >
             {calendarDays.map((date) => {
-              const isCurrentMonth = isSameMonth(date, currentMonth);
-              const isSelectedStart = startDate && isSameDay(date, startDate);
-              const isSelectedEnd = endDate && isSameDay(date, endDate);
-              const isWithinSelection =
+              const isCurrMonth = isSameMonth(date, currentMonth);
+              const isHoliday = HOLIDAYS.includes(format(date, "yyyy-MM-dd"));
+              const isSelStart = startDate && isSameDay(date, startDate);
+              const isSelEnd = endDate && isSameDay(date, endDate);
+              const isDayWeekend = isWeekend(date);
+              const isBetween =
                 startDate &&
                 endDate &&
-                isWithinInterval(date, { start: startDate, end: endDate });
-              const isHovered =
+                isWithinInterval(date, {
+                  start: isBefore(startDate, endDate) ? startDate : endDate,
+                  end: isBefore(startDate, endDate) ? endDate : startDate,
+                });
+              const isHover =
                 startDate &&
                 !endDate &&
                 hoverDate &&
-                ((isAfter(date, startDate) && isBefore(date, hoverDate)) ||
-                  (isBefore(date, startDate) && isAfter(date, hoverDate)) ||
-                  isSameDay(date, hoverDate));
-              const isCurrentDay = isToday(date);
+                isWithinInterval(date, {
+                  start: isBefore(startDate, hoverDate) ? startDate : hoverDate,
+                  end: isBefore(startDate, hoverDate) ? hoverDate : startDate,
+                });
+
+              const isHighlighted = (isHoliday || isDayWeekend) && isCurrMonth;
 
               return (
-                <button
+                <motion.button
                   key={date.toString()}
-                  type="button"
-                  aria-label={format(date, "PPPP")}
-                  aria-pressed={
-                    !!(isSelectedStart || isSelectedEnd || isWithinSelection)
-                  }
-                  className={cn(
-                    "h-10 md:h-12 flex items-center justify-center cursor-pointer transition-colors relative focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
-                    !isCurrentMonth &&
-                      "text-slate-300 font-normal hover:text-slate-500",
-                    isCurrentMonth && !isCurrentDay && "hover:bg-slate-100",
-                    isCurrentDay &&
-                      !isSelectedStart &&
-                      !isSelectedEnd &&
-                      !isWithinSelection &&
-                      cn(
-                        "border-2 font-bold",
-                        theme.textClass,
-                        "border-current rounded-full",
-                      ),
-                    (isWithinSelection || isHovered) &&
-                      cn(theme.bgLightClass, "rounded-none border-transparent"),
-                    isSelectedStart &&
-                      cn(
-                        theme.bgClass,
-                        theme.hoverClass,
-                        "text-white rounded-l-full rounded-r-none border-transparent",
-                      ),
-                    isSelectedEnd &&
-                      cn(
-                        theme.bgClass,
-                        theme.hoverClass,
-                        "text-white rounded-r-full rounded-l-none border-transparent",
-                      ),
-                    isSelectedStart && isSelectedEnd && "rounded-full",
-                    isSelectedStart &&
-                      !endDate &&
-                      !hoverDate &&
-                      "rounded-full focus-visible:ring-[#1B95D4]",
-                  )}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => onDateClick(date)}
                   onMouseEnter={() => setHoverDate(date)}
-                  onFocus={() => setHoverDate(date)}
+                  className={`h-10 md:h-12 flex items-center justify-center relative transition-all rounded-md outline-none
+                    ${!isCurrMonth ? "text-slate-300" : ""}
+                    ${isSelStart || isSelEnd ? "!text-white" : ""}
+                    ${isHoliday && isCurrMonth ? "underline underline-offset-4 font-bold" : ""}
+                  `}
+                  style={{
+                    backgroundColor:
+                      isSelStart || isSelEnd
+                        ? theme.primaryHex
+                        : isBetween || isHover
+                          ? theme.bgLight
+                          : "transparent",
+                    color:
+                      isSelStart || isSelEnd
+                        ? "#fff"
+                        : isHighlighted
+                          ? theme.primaryHex
+                          : isCurrMonth
+                            ? "#334155"
+                            : "#cbd5e1",
+                    borderRadius: isSelStart
+                      ? "999px 0 0 999px"
+                      : isSelEnd
+                        ? "0 999px 999px 0"
+                        : isBetween || isHover
+                          ? "0px"
+                          : "4px",
+                  }}
                 >
                   <span className="z-10">{format(date, "d")}</span>
-                </button>
+                </motion.button>
               );
             })}
           </motion.div>
