@@ -33,6 +33,7 @@ interface DateGridProps {
   endDate: Date | null;
   hoverDate: Date | null;
   theme: Theme;
+  datesWithNotes: string[];
   onDateClick: (day: Date) => void;
   setHoverDate: (day: Date | null) => void;
 }
@@ -44,6 +45,7 @@ export const DateGrid = React.memo(function DateGrid({
   endDate,
   hoverDate,
   theme,
+  datesWithNotes,
   onDateClick,
   setHoverDate,
 }: DateGridProps) {
@@ -54,12 +56,6 @@ export const DateGrid = React.memo(function DateGrid({
     calendarDays.push(day);
     day = addDays(day, 1);
   }
-
-  const flipVariants = {
-    enter: (d: number) => ({ rotateX: d > 0 ? -90 : 90, opacity: 0 }),
-    center: { zIndex: 1, rotateX: 0, opacity: 1 },
-    exit: (d: number) => ({ zIndex: 0, rotateX: d > 0 ? 90 : -90, opacity: 0 }),
-  };
 
   return (
     <div className="w-full md:w-2/3 flex flex-col">
@@ -74,7 +70,6 @@ export const DateGrid = React.memo(function DateGrid({
           </div>
         ))}
       </div>
-
       <div
         className="relative flex-1 min-h-[250px]"
         style={{ perspective: "1200px" }}
@@ -82,29 +77,20 @@ export const DateGrid = React.memo(function DateGrid({
         <AnimatePresence mode="wait" custom={direction} initial={false}>
           <motion.div
             key={currentMonth.toISOString()}
-            custom={direction}
-            variants={flipVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={{ type: "spring", stiffness: 200, damping: 20 }}
-            style={{ transformOrigin: "top center" }}
-            className="grid grid-cols-7 gap-y-2 text-center text-sm md:text-base font-semibold absolute w-full top-0"
+            className="grid grid-cols-7 gap-y-2 text-center text-sm font-semibold absolute w-full top-0"
             onMouseLeave={() => setHoverDate(null)}
           >
             {calendarDays.map((date) => {
+              const dateStr = format(date, "yyyy-MM-dd");
               const isCurrMonth = isSameMonth(date, currentMonth);
-              const isHoliday = HOLIDAYS.includes(format(date, "yyyy-MM-dd"));
+              const isHoliday = HOLIDAYS.includes(dateStr);
               const isSelStart = startDate && isSameDay(date, startDate);
               const isSelEnd = endDate && isSameDay(date, endDate);
-              const isDayWeekend = isWeekend(date);
+              const hasNote = datesWithNotes.includes(dateStr);
               const isBetween =
                 startDate &&
                 endDate &&
-                isWithinInterval(date, {
-                  start: isBefore(startDate, endDate) ? startDate : endDate,
-                  end: isBefore(startDate, endDate) ? endDate : startDate,
-                });
+                isWithinInterval(date, { start: startDate, end: endDate });
               const isHover =
                 startDate &&
                 !endDate &&
@@ -113,8 +99,6 @@ export const DateGrid = React.memo(function DateGrid({
                   start: isBefore(startDate, hoverDate) ? startDate : hoverDate,
                   end: isBefore(startDate, hoverDate) ? hoverDate : startDate,
                 });
-
-              const isHighlighted = (isHoliday || isDayWeekend) && isCurrMonth;
 
               return (
                 <motion.button
@@ -138,7 +122,7 @@ export const DateGrid = React.memo(function DateGrid({
                     color:
                       isSelStart || isSelEnd
                         ? "#fff"
-                        : isHighlighted
+                        : (isHoliday || isWeekend(date)) && isCurrMonth
                           ? theme.primaryHex
                           : isCurrMonth
                             ? "#334155"
@@ -152,7 +136,18 @@ export const DateGrid = React.memo(function DateGrid({
                           : "4px",
                   }}
                 >
-                  <span className="z-10">{format(date, "d")}</span>
+                  <div className="flex flex-col items-center">
+                    <span>{format(date, "d")}</span>
+                    {hasNote && (
+                      <div
+                        className="w-1 h-1 rounded-full absolute bottom-1"
+                        style={{
+                          backgroundColor:
+                            isSelStart || isSelEnd ? "#fff" : theme.primaryHex,
+                        }}
+                      />
+                    )}
+                  </div>
                 </motion.button>
               );
             })}
