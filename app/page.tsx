@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { format, addMonths, subMonths, isBefore } from "date-fns";
 import { HeroHeader } from "@/components/HeroHeader";
 import { NotesPanel } from "@/components/NotesPanel";
@@ -56,30 +56,44 @@ export default function Home() {
     setNotes(savedNotes || "");
   }, [currentMonth]);
 
-  const handleNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const newNotes = e.target.value;
-    setNotes(newNotes);
-    const monthKey = format(currentMonth, "yyyy-MM");
-    localStorage.setItem(`calendar-notes-${monthKey}`, newNotes);
-  };
+  const handleNotesChange = useCallback(
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      const newNotes = e.target.value;
+      setNotes(newNotes);
+      const monthKey = format(currentMonth, "yyyy-MM");
+      localStorage.setItem(`calendar-notes-${monthKey}`, newNotes);
+    },
+    [currentMonth],
+  );
 
-  const nextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
-  const prevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
-  const cycleTheme = () =>
-    setActiveThemeIndex((prev) => (prev + 1) % THEMES.length);
+  const nextMonth = useCallback(
+    () => setCurrentMonth((prev) => addMonths(prev, 1)),
+    [],
+  );
+  const prevMonth = useCallback(
+    () => setCurrentMonth((prev) => subMonths(prev, 1)),
+    [],
+  );
+  const cycleTheme = useCallback(
+    () => setActiveThemeIndex((prev) => (prev + 1) % THEMES.length),
+    [],
+  );
 
-  const onDateClick = (day: Date) => {
-    if (!startDate || (startDate && endDate)) {
-      setStartDate(day);
-      setEndDate(null);
-    } else if (startDate && !endDate) {
-      if (isBefore(day, startDate)) {
+  const onDateClick = useCallback(
+    (day: Date) => {
+      if (!startDate || (startDate && endDate)) {
         setStartDate(day);
-      } else {
-        setEndDate(day);
+        setEndDate(null);
+      } else if (startDate && !endDate) {
+        if (isBefore(day, startDate)) {
+          setStartDate(day);
+        } else {
+          setEndDate(day);
+        }
       }
-    }
-  };
+    },
+    [startDate, endDate],
+  );
 
   return (
     <main className="min-h-screen bg-neutral-100 p-4 py-12 flex items-center justify-center font-sans">

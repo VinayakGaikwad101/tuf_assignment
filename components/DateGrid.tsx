@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import {
   format,
   startOfMonth,
@@ -31,7 +32,7 @@ interface DateGridProps {
   setHoverDate: (day: Date | null) => void;
 }
 
-export function DateGrid({
+export const DateGrid = React.memo(function DateGrid({
   currentMonth,
   startDate,
   endDate,
@@ -54,7 +55,7 @@ export function DateGrid({
 
   return (
     <div className="w-full md:w-2/3">
-      <div className="grid grid-cols-7 text-center mb-6">
+      <div className="grid grid-cols-7 text-center mb-6" aria-hidden="true">
         {["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"].map((dayName) => (
           <div
             key={dayName}
@@ -71,6 +72,8 @@ export function DateGrid({
       <div
         className="grid grid-cols-7 gap-y-2 text-center text-sm md:text-base font-semibold text-slate-700"
         onMouseLeave={() => setHoverDate(null)}
+        role="grid"
+        aria-label="Calendar dates"
       >
         {calendarDays.map((date) => {
           const isCurrentMonth = isSameMonth(date, currentMonth);
@@ -89,13 +92,19 @@ export function DateGrid({
               isSameDay(date, hoverDate));
 
           return (
-            <div
+            <button
               key={date.toString()}
+              type="button"
+              aria-label={format(date, "PPPP")}
+              aria-pressed={
+                !!(isSelectedStart || isSelectedEnd || isWithinSelection)
+              }
               className={cn(
-                "h-10 md:h-12 flex items-center justify-center cursor-pointer transition-all relative",
+                "h-10 md:h-12 flex items-center justify-center cursor-pointer transition-all relative focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
                 !isCurrentMonth &&
                   "text-slate-300 font-normal hover:text-slate-500",
-                isCurrentMonth && "hover:bg-slate-100",
+                isCurrentMonth &&
+                  "hover:bg-slate-100 focus-visible:ring-[#1B95D4]",
                 (isWithinSelection || isHovered) &&
                   cn(theme.bgLightClass, "rounded-none"),
                 isSelectedStart &&
@@ -115,12 +124,13 @@ export function DateGrid({
               )}
               onClick={() => onDateClick(date)}
               onMouseEnter={() => setHoverDate(date)}
+              onFocus={() => setHoverDate(date)}
             >
               <span className="z-10">{format(date, "d")}</span>
-            </div>
+            </button>
           );
         })}
       </div>
     </div>
   );
-}
+});
