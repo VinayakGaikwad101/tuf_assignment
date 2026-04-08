@@ -135,7 +135,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-neutral-100 p-4 py-12 flex items-center justify-center font-sans">
-      <div className="w-full max-w-3xl bg-white shadow-2xl overflow-hidden relative min-h-[600px]">
+      <div className="w-full max-w-3xl bg-white shadow-2xl overflow-hidden relative min-h-150">
         <SummaryModal
           isOpen={showSummary}
           onClose={() => setShowSummary(false)}

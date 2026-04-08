@@ -71,7 +71,7 @@ export const DateGrid = React.memo(function DateGrid({
       </div>
 
       <div
-        className="relative flex-1 min-h-[250px]"
+        className="relative flex-1 min-h-62.5"
         style={{ perspective: "1200px" }}
       >
         <AnimatePresence mode="wait" custom={direction} initial={false}>
@@ -114,7 +114,7 @@ export const DateGrid = React.memo(function DateGrid({
                   onMouseEnter={() => setHoverDate(date)}
                   className={`h-10 md:h-12 flex items-center justify-center relative transition-all rounded-md outline-none
                     ${!isCurrMonth ? "text-slate-300" : ""}
-                    ${isSelStart || isSelEnd ? "!text-white" : ""}
+                    ${isSelStart || isSelEnd ? "text-white!" : ""}
                     ${isHoliday && isCurrMonth ? "underline underline-offset-4 font-bold" : ""}
                   `}
                   style={{

@@ -20,7 +20,7 @@ export function HeroHeader({
   onRandomize,
 }: HeroHeaderProps) {
   return (
-    <div className="relative w-full h-[350px] md:h-[450px] bg-slate-100">
+    <div className="relative w-full h-87.5 md:h-112.5 bg-slate-100">
       <img
         key={theme.imageUrl}
         src={theme.imageUrl}
@@ -56,7 +56,7 @@ export function HeroHeader({
             >
               <ChevronLeft size={28} />
             </button>
-            <span className="min-w-[4rem] text-center font-medium">
+            <span className="min-w-16 text-center font-medium">
               {format(currentMonth, "yyyy")}
             </span>
             <button

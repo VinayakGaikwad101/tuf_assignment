@@ -20,7 +20,7 @@ export function SummaryModal({
   if (!isOpen) return null;
 
   return (
-    <div className="absolute inset-0 z-[60] bg-white/95 backdrop-blur-md p-8 flex flex-col animate-in fade-in zoom-in duration-200">
+    <div className="absolute inset-0 z-60 bg-white/95 backdrop-blur-md p-8 flex flex-col animate-in fade-in zoom-in duration-200">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h2
